@@ -1,0 +1,11 @@
+Feature Importance:
+MajorAxisLength: 0.256127
+Perimeter: 0.225738
+ConvexArea: 0.172722
+Area: 0.122761
+Eccentricity: 0.094790
+MinorAxisLength: 0.065989
+Extent: 0.061873
+
+Epsilon-Features:
+Extent: 0.061873

@@ -1,0 +1,22 @@
+Feature Importance:
+duration: 0.282259
+age: 0.110604
+balance: 0.103761
+day: 0.094158
+month: 0.080886
+pdays: 0.058375
+job: 0.051086
+poutcome: 0.045085
+campaign: 0.039695
+education: 0.030632
+previous: 0.026082
+marital: 0.024270
+housing: 0.020754
+contact: 0.020714
+loan: 0.009127
+default: 0.002513
+
+Epsilon-Features:
+contact: 0.020714
+loan: 0.009127
+default: 0.002513

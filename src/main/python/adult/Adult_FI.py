@@ -1,5 +1,6 @@
 import os
 import pathlib
+import pickle
 
 import pandas as pd
 import dagshub
@@ -82,21 +83,39 @@ if __name__ == "__main__":
 
     feat_labels = df.columns[1:]
 
+    # Open of output file
+    file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'adult.txt'))
+    adultFile = open(file_name, "w")
+    adultFile.write("Feature Importance:\n")
+
     # Log a params
     for f in range(x_train.shape[1]):
         print("%2d) %-*s %f" % (f + 1, 30,
-                                feat_labels[sorted_indices[f]],
+                                x_train.columns[sorted_indices[f]],
                                 importances[sorted_indices[f]]))
-        log_param(feat_labels[sorted_indices[f]], importances[sorted_indices[f]])
+        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
+        adultFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+                                      importances[sorted_indices[f]]))
+
+    adultFile.write("\nEpsilon-Features:\n")
+    truePositive = x_train.columns.shape[0] // 5
+    if truePositive <= 0:
+        truePositive = 1
+    for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
+        adultFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+                                      importances[sorted_indices[f]]))
+
+    # Close of file
+    adultFile.close()
 
     # Metrics calculation
     tupla = performance([1, 2, 10], [1, 2, 20])
 
     # Log a metric; metrics can be updated throughout the run
-    log_metric("accuracy", tupla[0])
-    log_metric("precision", tupla[1])
-    log_metric("recall", tupla[2])
-    log_metric("execution_time", execution_time)
+    # log_metric("accuracy", tupla[0])
+    # log_metric("precision", tupla[1])
+    # log_metric("recall", tupla[2])
+    # log_metric("execution_time", execution_time)
 
     # create a plot for see the data of features importance
     plt.title('Feature Importance')
