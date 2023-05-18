@@ -91,12 +91,12 @@ if __name__ == "__main__":
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
 
     importances = rfe.support_
-    epsilon_features = ["", ""]
+    epsilon_features = []
     print("Epsilon-Features Detected:")
     i = 0
     for feature, selected in zip(x_train.columns, importances):
         if selected:
-            epsilon_features[i] = feature
+            epsilon_features.append(feature)
             print("%2d) %s" % (i + 1, feature))
             i = i + 1
 

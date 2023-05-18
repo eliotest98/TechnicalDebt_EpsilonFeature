@@ -20,13 +20,6 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 
-def performance(actual, pred):
-    accuracy = accuracy_score(actual, pred)
-    precision = precision_score(actual, pred, average='macro')
-    recall = recall_score(actual, pred, average='macro')
-    return accuracy, precision, recall
-
-
 if __name__ == "__main__":
 
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
@@ -107,15 +100,6 @@ if __name__ == "__main__":
 
     # Close of file
     adultFile.close()
-
-    # Metrics calculation
-    tupla = performance([1, 2, 10], [1, 2, 20])
-
-    # Log a metric; metrics can be updated throughout the run
-    # log_metric("accuracy", tupla[0])
-    # log_metric("precision", tupla[1])
-    # log_metric("recall", tupla[2])
-    # log_metric("execution_time", execution_time)
 
     # create a plot for see the data of features importance
     plt.title('Feature Importance')
