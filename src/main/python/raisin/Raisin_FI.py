@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import dagshub
 from sklearn.metrics import accuracy_score, precision_score, recall_score
-from mlflow import log_metric, log_param
+from mlflow import log_param
 import mlflow
 import logging
 import matplotlib.pyplot as plt
@@ -72,8 +72,6 @@ if __name__ == "__main__":
     # Sort the feature importance in descending order
     #
     sorted_indices = np.argsort(importances)[::-1]
-
-    feat_labels = df.columns[1:]
 
     # Open of output file
     file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'raisin.txt'))

@@ -1,9 +1,8 @@
 import os
-import pathlib
 import pandas as pd
 import dagshub
 from sklearn.metrics import accuracy_score, precision_score, recall_score
-from mlflow import log_metric, log_param
+from mlflow import log_param
 import mlflow
 import logging
 import matplotlib.pyplot as plt
@@ -73,8 +72,6 @@ if __name__ == "__main__":
     #
     sorted_indices = np.argsort(importances)[::-1]
 
-    feat_labels = df.columns[1:]
-
     # Open of output file
     file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'bank.txt'))
     adultFile = open(file_name, "w")
@@ -102,12 +99,6 @@ if __name__ == "__main__":
 
     # Metrics calculation
     tupla = performance([1, 2, 10], [1, 2, 20])
-
-    # Log a metric; metrics can be updated throughout the run
-    # log_metric("accuracy", tupla[0])
-    # log_metric("precision", tupla[1])
-    # log_metric("recall", tupla[2])
-    # log_metric("execution_time", execution_time)
 
     plt.title('Feature Importance')
     plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center', data=x_train.values)

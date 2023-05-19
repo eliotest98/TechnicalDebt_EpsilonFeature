@@ -5,7 +5,6 @@ import dagshub
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn import datasets
-from sklearn.metrics import accuracy_score, precision_score, recall_score
 from mlflow import log_param
 import mlflow
 import logging
@@ -70,8 +69,6 @@ if __name__ == "__main__":
     # Sort the feature importance in descending order
     #
     sorted_indices = np.argsort(importances)[::-1]
-
-    feat_labels = df.columns[1:]
 
     # Open of output file
     file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'wine.txt'))

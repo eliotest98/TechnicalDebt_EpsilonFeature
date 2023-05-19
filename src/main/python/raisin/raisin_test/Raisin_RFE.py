@@ -41,6 +41,11 @@ def load_oracle(file_to_open):
     return epsilon_features_oracle
 
 
+def sort_list_by_oracle_order(list_to_sort, oracle_list):
+    oracle_mapping = {val: i for i, val in enumerate(oracle_list)}
+    return sorted(list_to_sort, key=lambda x: oracle_mapping.get(x, float('inf')))
+
+
 if __name__ == "__main__":
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
@@ -100,15 +105,13 @@ if __name__ == "__main__":
     #
     sorted_indices = np.argsort(importances)[::-1]
 
-    feat_labels = df.columns[1:]
-
     # Log a params
     for f in range(x_train.shape[1]):
         log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
 
-    # Order lexicographical of lists
-    epsilon_features.sort()
-    epsilon_features_oracle.sort()
+    # Sorting epsilon features list by oracle
+    epsilon_features = sort_list_by_oracle_order(epsilon_features, epsilon_features_oracle)
+
     # Metrics calculation
     tupla = performance(epsilon_features, epsilon_features_oracle)
 
