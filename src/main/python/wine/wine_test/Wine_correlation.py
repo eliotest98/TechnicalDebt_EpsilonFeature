@@ -1,0 +1,127 @@
+import os
+
+import pandas as pd
+import dagshub
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn import datasets
+import mlflow
+import logging
+import matplotlib.pyplot as plt
+import time
+import seaborn as sns
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+from mlflow import log_metric
+
+logging.basicConfig(level=logging.WARN)
+logger = logging.getLogger(__name__)
+
+
+def performance(actual, pred):
+    accuracy = accuracy_score(actual, pred)
+    precision = precision_score(actual, pred, average='macro')
+    recall = recall_score(actual, pred, average='macro')
+    return accuracy, precision, recall
+
+
+def load_oracle(file_to_open):
+    # Open of output file
+    file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../resources/outputs', file_to_open))
+    file = open(file_name, "r")
+    start = False
+    # Load of Oracle Epsilon Features
+    epsilon_features_oracle = []
+    for riga in file:
+        riga = riga.strip()
+        if ("Epsilon-Features" in riga) | start:
+            if start:
+                epsilon_features_oracle.append(riga.split(":")[0])
+            start = True
+    return epsilon_features_oracle
+
+
+def sort_list_by_oracle_order(list_to_sort, oracle_list):
+    oracle_mapping = {val: i for i, val in enumerate(oracle_list)}
+    return sorted(list_to_sort, key=lambda x: oracle_mapping.get(x, float('inf')))
+
+
+if __name__ == "__main__":
+
+    mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
+    dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
+
+    #
+    # Load the wine datasets
+    #
+    wine = datasets.load_wine()
+    df = pd.DataFrame(wine.data)
+    df[13] = wine.target
+    df.columns = ['alcohal', 'malic_acid', 'ash', 'ash_alcalinity', 'magnesium', 'total_phenols', 'flavanoids',
+                  'nonflavanoids_phenols', 'proanthocyanins', 'color_intensity', 'hue', 'od_dilutedwines', 'proline',
+                  'class']
+    #
+    # Create training and test split
+    #
+    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=1)
+    #
+    # Feature scaling
+    #
+    sc = StandardScaler()
+    sc.fit(x_train)
+    X_train_std = sc.transform(x_train)
+    X_test_std = sc.transform(x_test)
+    #
+    # Training / Test Dataframe
+    #
+    cols = ['alcohal', 'malic_acid', 'ash', 'ash_alcalinity', 'magnesium', 'total_phenols', 'flavanoids',
+            'nonflavanoids_phenols', 'proanthocyanins', 'color_intensity', 'hue', 'od_dilutedwines', 'proline']
+    X_train_std = pd.DataFrame(X_train_std, columns=cols)
+    X_test_std = pd.DataFrame(X_test_std, columns=cols)
+
+    # Load of oracle epsilon features
+    epsilon_features_oracle = load_oracle("wine.txt")
+
+    correlation_matrix = df.corr()
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
+    plt.title("Correlation Matrix")
+    plt.xticks(rotation=45)
+    plt.yticks(rotation=0)
+    plt.show()
+
+    # Scegli una soglia di correlazione (ad esempio, 0.5) per la selezione delle caratteristiche
+    threshold = -1.0
+
+    # store the execution time for metrics
+    execution_time = round(time.time() * 1000)
+
+    # Seleziona le caratteristiche con una correlazione superiore alla soglia
+    epsilon_features = []
+    for i in range(len(correlation_matrix.columns[13])):
+        for j in range(i):
+            if abs(correlation_matrix.iloc[i, j]) > threshold:
+                colname = correlation_matrix.columns[i]
+                if colname not in epsilon_features:
+                    epsilon_features.append(colname)
+
+    # execution time at the end of fit
+    execution_time = (round(time.time() * 1000) - execution_time) / 1000
+
+    print("Epsilon-Features Detected:")
+    i = 0
+    for feature in epsilon_features:
+        print("%2d) %s" % (i + 1, feature))
+        i = i + 1
+
+    # Sorting epsilon features list by oracle
+    epsilon_features = sort_list_by_oracle_order(epsilon_features, epsilon_features_oracle)
+
+    # Metrics calculation
+    tupla = performance(epsilon_features, epsilon_features_oracle)
+
+    # Log a metric; metrics can be updated throughout the run
+    log_metric("accuracy", tupla[0])
+    log_metric("precision", tupla[1])
+    log_metric("recall", tupla[2])
+    log_metric("execution_time", execution_time)
