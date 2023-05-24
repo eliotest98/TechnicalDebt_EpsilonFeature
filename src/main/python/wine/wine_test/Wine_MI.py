@@ -51,7 +51,7 @@ if __name__ == "__main__":
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
     #
-    # Load the wine datasets
+    # Load the wine dataset
     #
     wine = datasets.load_wine()
     df = pd.DataFrame(wine.data)
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     #
     # Create training and test split
     #
-    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=1)
+    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=42)
     #
     # Feature scaling
     #
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     #
     # Train the mode
     #
-    importances = mutual_info_classif(wine.data, wine.target)
+    importances = mutual_info_classif(x_train, y_test)
 
     # execution time at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000

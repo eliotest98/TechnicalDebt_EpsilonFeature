@@ -29,7 +29,7 @@ if __name__ == "__main__":
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
     #
-    # Load the adult datasets
+    # Load the bank dataset
     #
     csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'bank.csv'))
     df = pd.read_csv(csv_path, sep=';')
@@ -45,15 +45,14 @@ if __name__ == "__main__":
             'duration', 'campaign', 'pdays', 'previous', 'poutcome']]
     y = df['CLASS']
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=0)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
 
     scaler = StandardScaler()
 
     x_train = pd.DataFrame(scaler.fit_transform(x_train), columns=x.columns)
     x_test = pd.DataFrame(scaler.transform(x_test), columns=x.columns)
 
-    forest = RandomForestClassifier(n_estimators=500,
-                                    random_state=1)
+    forest = RandomForestClassifier(n_estimators=500, random_state=42)
 
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)
@@ -74,8 +73,8 @@ if __name__ == "__main__":
 
     # Open of output file
     file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'bank.txt'))
-    adultFile = open(file_name, "w")
-    adultFile.write("Feature Importance:\n")
+    bankFile = open(file_name, "w")
+    bankFile.write("Feature Importance:\n")
 
     # Log a params
     for f in range(x_train.shape[1]):
@@ -83,19 +82,19 @@ if __name__ == "__main__":
                                 x_train.columns[sorted_indices[f]],
                                 importances[sorted_indices[f]]))
         log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
-        adultFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+        bankFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
                                       importances[sorted_indices[f]]))
 
-    adultFile.write("\nEpsilon-Features:\n")
+    bankFile.write("\nEpsilon-Features:\n")
     truePositive = x_train.columns.shape[0] // 5
     if truePositive <= 0:
         truePositive = 1
     for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        adultFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+        bankFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
                                       importances[sorted_indices[f]]))
 
     # Close of file
-    adultFile.close()
+    bankFile.close()
 
     # Metrics calculation
     tupla = performance([1, 2, 10], [1, 2, 20])

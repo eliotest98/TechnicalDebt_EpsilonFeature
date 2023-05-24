@@ -22,7 +22,7 @@ if __name__ == "__main__":
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
     #
-    # Load the adult datasets
+    # Load the adult dataset
     #
     csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'adult.csv'))
     df = pd.read_csv(csv_path, sep=',')
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     #
     # Create training and test split
     #
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=0)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
     #
     # Feature scaling
     #
@@ -50,8 +50,7 @@ if __name__ == "__main__":
     x_train = pd.DataFrame(scaler.fit_transform(x_train), columns=x.columns)
     x_test = pd.DataFrame(scaler.transform(x_test), columns=x.columns)
 
-    forest = RandomForestClassifier(n_estimators=500,
-                                    random_state=1)
+    forest = RandomForestClassifier(n_estimators=500, random_state=42) 
 
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)

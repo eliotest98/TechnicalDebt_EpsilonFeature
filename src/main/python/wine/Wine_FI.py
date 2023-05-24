@@ -23,7 +23,7 @@ if __name__ == "__main__":
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
     #
-    # Load the wine datasets
+    # Load the wine dataset
     #
     wine = datasets.load_wine()
     df = pd.DataFrame(wine.data)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     #
     # Create training and test split
     #
-    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=1)
+    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=42)
     #
     # Feature scaling
     #
@@ -50,8 +50,7 @@ if __name__ == "__main__":
     X_train_std = pd.DataFrame(X_train_std, columns=cols)
     X_test_std = pd.DataFrame(X_test_std, columns=cols)
 
-    forest = RandomForestClassifier(n_estimators=500,
-                                    random_state=1)
+    forest = RandomForestClassifier(n_estimators=500, random_state=42)
 
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)
@@ -72,8 +71,8 @@ if __name__ == "__main__":
 
     # Open of output file
     file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'wine.txt'))
-    adultFile = open(file_name, "w")
-    adultFile.write("Feature Importance:\n")
+    wineFile = open(file_name, "w")
+    wineFile.write("Feature Importance:\n")
 
     # Log a params
     for f in range(x_train.shape[1]):
@@ -81,19 +80,19 @@ if __name__ == "__main__":
                                 x_train.columns[sorted_indices[f]],
                                 importances[sorted_indices[f]]))
         log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
-        adultFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+        wineFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
                                       importances[sorted_indices[f]]))
 
-    adultFile.write("\nEpsilon-Features:\n")
+    wineFile.write("\nEpsilon-Features:\n")
     truePositive = x_train.columns.shape[0] // 5
     if truePositive <= 0:
         truePositive = 1
     for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        adultFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+        wineFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
                                       importances[sorted_indices[f]]))
 
     # Close of file
-    adultFile.close()
+    wineFile.close()
 
     # create a plot for see the data of features importance
     plt.title('Feature Importance')
