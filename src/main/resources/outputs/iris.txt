@@ -1,8 +1,8 @@
 Feature Importance:
-petal width: 0.448989
-petal length: 0.422606
-sepal length: 0.099156
-sepal width: 0.029250
+petal length: 0.432352
+petal width: 0.407513
+sepal length: 0.115238
+sepal width: 0.044897
 
 Epsilon-Features:
-sepal width: 0.029250
+sepal width: 0.044897

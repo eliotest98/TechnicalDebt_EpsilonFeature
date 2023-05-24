@@ -87,7 +87,7 @@ if __name__ == "__main__":
     #
     # Train the mode
     #
-    importances = mutual_info_classif(x_train, y_test)
+    importances = mutual_info_classif(df.columns, df[13])
 
     # execution time at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
