@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import time
 import seaborn as sns
 from sklearn.metrics import accuracy_score, precision_score, recall_score
-from mlflow import log_metric
+from mlflow import log_metric, log_param
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
@@ -40,9 +40,22 @@ def load_oracle(file_to_open):
     return epsilon_features_oracle
 
 
-def sort_list_by_oracle_order(list_to_sort, oracle_list):
+def sort_dict_by_values(dictionary):
+    sorted_items = sorted(dictionary.items(), key=lambda x: x[1])
+    sorted_dict = {item[0]: item[1] for item in sorted_items}
+    return sorted_dict
+
+
+def sort_dict_by_oracle_order(dictionary, oracle_list):
     oracle_mapping = {val: i for i, val in enumerate(oracle_list)}
-    return sorted(list_to_sort, key=lambda x: oracle_mapping.get(x, float('inf')))
+    return dict(sorted(dictionary.items(), key=lambda x: oracle_mapping.get(x[0], float('inf'))))
+
+
+def delete_features(dictionary, threshold):
+    keys_to_delete = [k for k, v in dictionary.items() if abs(v) > threshold + 0.1]
+    for chiave in keys_to_delete:
+        del dictionary[chiave]
+    return dictionary
 
 
 if __name__ == "__main__":
@@ -90,35 +103,51 @@ if __name__ == "__main__":
     plt.yticks(rotation=0)
     plt.show()
 
-    # Scegli una soglia di correlazione (ad esempio, 0.5) per la selezione delle caratteristiche
-    threshold = -1.0
+    # Correlation threshold corresponding to variables with a low relationship to each other
+    threshold = 0.0
 
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)
 
-    # Seleziona le caratteristiche con una correlazione superiore alla soglia
-    epsilon_features = []
-    for i in range(len(correlation_matrix.columns[13])):
+    epsilon_features = {}
+    # Select characteristics with a correlation above the threshold
+    for i in range(len(correlation_matrix.columns)):
         for j in range(i):
             if abs(correlation_matrix.iloc[i, j]) > threshold:
                 colname = correlation_matrix.columns[i]
-                if colname not in epsilon_features:
-                    epsilon_features.append(colname)
+                if epsilon_features.get(colname) is None:
+                    epsilon_features[colname] = correlation_matrix.iloc[i, j]
+                if epsilon_features.get(colname) > correlation_matrix.iloc[i, j]:
+                    epsilon_features[colname] = correlation_matrix.iloc[i, j]
 
     # execution time at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
 
-    print("Epsilon-Features Detected:")
+    # order features by values
+    epsilon_features = sort_dict_by_values(epsilon_features)
+    print("Order by value:")
     i = 0
-    for feature in epsilon_features:
-        print("%2d) %s" % (i + 1, feature))
+    for key, value in epsilon_features.items():
+        # Esegui le operazioni desiderate su chiave e valore
+        print("%2d) %s: %f" % (i + 1, key, value))
         i = i + 1
+        log_param(key, value)
+
+    # Delete Features for get epsilon-features
+    epsilon_features = delete_features(epsilon_features, threshold)
 
     # Sorting epsilon features list by oracle
-    epsilon_features = sort_list_by_oracle_order(epsilon_features, epsilon_features_oracle)
+    epsilon_features = sort_dict_by_oracle_order(epsilon_features, epsilon_features_oracle)
+
+    print("\nEpsilon-Features Detected:")
+    i = 0
+    for key, value in epsilon_features.items():
+        # Esegui le operazioni desiderate su chiave e valore
+        print("%2d) %s: %f" % (i + 1, key, value))
+        i = i + 1
 
     # Metrics calculation
-    tupla = performance(epsilon_features, epsilon_features_oracle)
+    tupla = performance(list(epsilon_features.keys()), epsilon_features_oracle)
 
     # Log a metric; metrics can be updated throughout the run
     log_metric("accuracy", tupla[0])
