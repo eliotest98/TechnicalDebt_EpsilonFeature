@@ -40,9 +40,12 @@ def load_oracle(file_to_open):
     return epsilon_features_oracle
 
 
-def sort_list_by_oracle_order(list_to_sort, oracle_list):
-    oracle_mapping = {val: i for i, val in enumerate(oracle_list)}
-    return sorted(list_to_sort, key=lambda x: oracle_mapping.get(x, float('inf')))
+def sort_lists(list_to_sort, oracle_list):
+    elementi_comuni = [item for item in list_to_sort if item in oracle_list]
+
+    list_to_sort = elementi_comuni + [item for item in list_to_sort if item not in elementi_comuni]
+    oracle_list = elementi_comuni + [item for item in oracle_list if item not in elementi_comuni]
+    return list_to_sort, oracle_list
 
 
 if __name__ == "__main__":
@@ -87,7 +90,7 @@ if __name__ == "__main__":
     #
     # Train the mode
     #
-    importances = mutual_info_classif(df.columns, df[13])
+    importances = mutual_info_classif(wine.data, wine.target)
 
     # execution time at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
@@ -114,7 +117,7 @@ if __name__ == "__main__":
         epsilon_features.append(x_train.columns[sorted_indices[f]])
 
     # Sorting epsilon features list by oracle
-    epsilon_features = sort_list_by_oracle_order(epsilon_features, epsilon_features_oracle)
+    epsilon_features, epsilon_features_oracle = sort_lists(epsilon_features, epsilon_features_oracle)
 
     # Metrics calculation
     tupla = performance(epsilon_features, epsilon_features_oracle)

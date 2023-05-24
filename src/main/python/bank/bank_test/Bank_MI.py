@@ -40,9 +40,18 @@ def load_oracle(file_to_open):
     return epsilon_features_oracle
 
 
-def sort_list_by_oracle_order(list_to_sort, oracle_list):
-    oracle_mapping = {val: i for i, val in enumerate(oracle_list)}
-    return sorted(list_to_sort, key=lambda x: oracle_mapping.get(x, float('inf')))
+def sort_lists(list_to_sort, oracle_list):
+    elementi_comuni = [item for item in list_to_sort if item in oracle_list]
+
+    list_to_sort = elementi_comuni + [item for item in list_to_sort if item not in elementi_comuni]
+    oracle_list = elementi_comuni + [item for item in oracle_list if item not in elementi_comuni]
+    return list_to_sort, oracle_list
+
+
+def sort_dict_by_values(dictionary):
+    sorted_items = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
+    sorted_dict = {item[0]: item[1] for item in sorted_items}
+    return sorted_dict
 
 
 if __name__ == "__main__":
@@ -57,7 +66,7 @@ if __name__ == "__main__":
     df = pd.read_csv(csv_path, sep=';')
 
     categorical = ['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome', 'CLASS']
-    
+
     label_encoder = LabelEncoder()
     for col in categorical:
         label_encoder.fit(df[col])
@@ -85,36 +94,46 @@ if __name__ == "__main__":
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)
 
+    epsilon_features_dict = {}
+
     #
     # Train the mode
     #
-    importances = mutual_info_classif(x, y)
+    for i in range(51):
+        importances = mutual_info_classif(x, y)
+        sorted_indices = np.argsort(importances)[::-1]
+        epsilon_features = []
+        print("\nRun: %d Epsilon Features Detected:" % i)
+        for f in range(x_train.shape[1] - len(epsilon_features_oracle), x_train.shape[1]):
+            print("%2d) %s" % (f + 1, x_train.columns[sorted_indices[f]]))
+            epsilon_features.append(x_train.columns[sorted_indices[f]])
+        epsilon_features_dict[i] = epsilon_features
 
     # execution time at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
 
-    #
-    # Sort the feature in descending order
-    #
-    sorted_indices = np.argsort(importances)[::-1]
+    epsilon_features_number_of_times = {}
+    for key, value in epsilon_features_dict.items():
+        for feature in value:
+            if epsilon_features_number_of_times.get(feature) is None:
+                epsilon_features_number_of_times[feature] = 1
+            else:
+                number = epsilon_features_number_of_times.get(feature)
+                epsilon_features_number_of_times[feature] = number + 1
 
-    print("Feature Importance Detected:")
-    for f in range(x_train.shape[1]):
-        print("%2d) %-*s %f" % (f + 1, 30,
-                                x_train.columns[sorted_indices[f]],
-                                importances[sorted_indices[f]]))
-        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
+    epsilon_features_number_of_times = sort_dict_by_values(epsilon_features_number_of_times)
 
-    epsilon_features = []
-    truePositive = x_train.columns.shape[0] // 5
-    if truePositive <= 0:
-        truePositive = 1
-    print("Epsilon Features Detected:")
-    for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        print("%2d) %s" % (f + 1, x_train.columns[sorted_indices[f]]))
-        epsilon_features.append(x_train.columns[sorted_indices[f]][1:])
+    print("\nFinal Epsilon-Features Candidates:")
+    i = 0
+    for key, value in epsilon_features_number_of_times.items():
+        # Esegui le operazioni desiderate su chiave e valore
+        print("%2d) %s: %d times" % (i + 1, key, value))
+        log_param(key, value)
+        i = i + 1
 
-    epsilon_features = sort_list_by_oracle_order(epsilon_features, epsilon_features_oracle)
+    epsilon_features = list(epsilon_features_number_of_times.keys())[:3]
+
+    epsilon_features, epsilon_features_oracle = sort_lists(epsilon_features, epsilon_features_oracle)
 
     # Metrics calculation
     tupla = performance(epsilon_features, epsilon_features_oracle)
@@ -126,8 +145,8 @@ if __name__ == "__main__":
     log_metric("execution_time", execution_time)
 
     # create a plot for see the data of features
-    plt.title('Epsilon Features')
-    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
-    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
+    plt.title('Epsilon Features Ordered')
+    plt.bar(range(len(epsilon_features_number_of_times)), epsilon_features_number_of_times.values(), align='center')
+    plt.xticks(range(len(epsilon_features_number_of_times)), epsilon_features_number_of_times.keys(), rotation=90)
     plt.tight_layout()
     plt.show()
