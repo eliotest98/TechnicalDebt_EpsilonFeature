@@ -1,5 +1,4 @@
 import itertools
-import os
 import pandas as pd
 import dagshub
 from sklearn.model_selection import train_test_split
@@ -27,12 +26,16 @@ if __name__ == "__main__":
     # Load the wine dataset
     #
     wine = datasets.load_wine()
-
     df = pd.DataFrame(wine.data)
     df[13] = wine.target
     df.columns = ['alcohal', 'malic_acid', 'ash', 'ash_alcalinity', 'magnesium', 'total_phenols', 'flavanoids',
                   'nonflavanoids_phenols', 'proanthocyanins', 'color_intensity', 'hue', 'od_dilutedwines', 'proline',
                   'class']
+
+
+    # Epsilon features dropped
+    del df['ash']
+    del df['nonflavanoids_phenols']
 
     #
     # Create training and test split
@@ -50,26 +53,36 @@ if __name__ == "__main__":
     #
     # Training / Test Dataframe
     #
-    cols = ['alcohal', 'malic_acid', 'ash', 'ash_alcalinity', 'magnesium', 'total_phenols', 'flavanoids',
-            'nonflavanoids_phenols', 'proanthocyanins', 'color_intensity', 'hue', 'od_dilutedwines', 'proline']
+    cols = ['alcohal', 'malic_acid', 'ash_alcalinity', 'magnesium', 'total_phenols', 'flavanoids', 'proanthocyanins',
+            'color_intensity', 'hue', 'od_dilutedwines', 'proline']
     X_train_std = pd.DataFrame(X_train_std, columns=cols)
     X_test_std = pd.DataFrame(X_test_std, columns=cols)
 
     forest = RandomForestClassifier(n_estimators=500, random_state=42)
 
-    # store the execution time for metrics
+    # Store the execution time for metrics
     execution_time = round(time.time() * 1000)
 
     #
-    # Train the mode
+    # Train the model
     #
     forest.fit(X_train_std, y_train.values.ravel())
 
-    # execution time at the end of fit
+    # Execution time (Metric) at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
 
     # feature importances
     importances = forest.feature_importances_
+
+    #
+    # Sort the feature importance in descending order (ONLY CHECK!)
+    #
+    sorted_indices = np.argsort(importances)[::-1]
+
+    for f in range(x_train.shape[1]):
+        print("%2d) %-*s %f" % (f + 1, 30,
+                                x_train.columns[sorted_indices[f]],
+                                importances[sorted_indices[f]]))
 
     #
     # Prediction
@@ -84,45 +97,16 @@ if __name__ == "__main__":
     print(report)
 
     #
-    # Metrics
+    # Other metrics
     #
     precision, recall, f1_score, support_val = precision_recall_fscore_support(y_test, y_pred_test)
     accuracy = accuracy_score(y_test, y_pred_test)
 
-    #
-    # Sort the feature importance in descending order
-    #
-    sorted_indices = np.argsort(importances)[::-1]
-
-    # Open of output file
-    file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'wine.txt'))
-    wineFile = open(file_name, "w")
-
-    #
-    # Saving informations
-    #
-    wineFile.write("Feature Importance:\n")
-    for f in range(x_train.shape[1]):
-        wineFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                     importances[sorted_indices[f]]))
-
-    wineFile.write("\nEpsilon-Features:\n")
-    truePositive = x_train.columns.shape[0] // 5
-    if truePositive <= 0:
-        truePositive = 1
-    for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        wineFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                     importances[sorted_indices[f]]))
-
-    # Close of file
-    wineFile.close()
+    singleton = list(set(y_pred_test))
 
     # Log of params
-    for f in range(x_train.shape[1]):
-        print("%2d) %-*s %f" % (f + 1, 30,
-                                x_train.columns[sorted_indices[f]],
-                                importances[sorted_indices[f]]))
-        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
+    for x in range(len(singleton)):
+        log_param(str(singleton[x]), "Class Type")
 
     # Log of metrics
     for x in range(len(precision)):
@@ -131,14 +115,7 @@ if __name__ == "__main__":
     log_metric("accuracy", accuracy)
     log_metric("execution_time", execution_time)
 
-    # create a plot for see the data of features importance
-    plt.title('Feature Importance')
-    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
-    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
-    plt.tight_layout()
-    plt.show()
-
-    # create a plot for see the data of confusion matrix
+    # Create a plot for see the data of confusion matrix
     plt.figure(figsize=(8, 6))
     plt.imshow(confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title('Confusion Matrix')
@@ -156,6 +133,6 @@ if __name__ == "__main__":
         plt.text(j, i, format(confusion_matrix[i, j], 'd'), horizontalalignment="center",
                  color="white" if confusion_matrix[i, j] > thresh else "black")
 
-    # Show plot
+    # Show plots
     plt.tight_layout()
     plt.show()
