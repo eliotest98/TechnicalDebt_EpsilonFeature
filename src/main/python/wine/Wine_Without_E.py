@@ -79,6 +79,7 @@ if __name__ == "__main__":
     #
     sorted_indices = np.argsort(importances)[::-1]
 
+    
     for f in range(x_train.shape[1]):
         print("%2d) %-*s %f" % (f + 1, 30,
                                 x_train.columns[sorted_indices[f]],

@@ -1,5 +1,4 @@
 import itertools
-import os
 import pandas as pd
 from sklearn import datasets
 import dagshub
@@ -18,6 +17,7 @@ import matplotlib.pyplot as plt
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
+
 if __name__ == "__main__":
 
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
@@ -31,11 +31,14 @@ if __name__ == "__main__":
 
     df[4] = iris.target
     df.columns = ['sepal length', 'sepal width', 'petal length', 'petal width', 'class']
+
+    # Epsilon features dropped
+    del df['sepal width']
+
     #
     # Create training and test split
     #
-    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3,
-                                                        random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=42)
     #
     # Feature scaling
     #
@@ -47,24 +50,34 @@ if __name__ == "__main__":
     #
     # Training / Test Dataframe
     #
-    cols = ['sepal length', 'sepal width', 'petal length', 'petal width']
+    cols = ['sepal length', 'petal length', 'petal width']
     x_train_std = pd.DataFrame(x_train_std, columns=cols)
     x_test_std = pd.DataFrame(x_test_std, columns=cols)
 
     forest = RandomForestClassifier(n_estimators=500, random_state=42)
 
-    # store the execution time for metrics
+    # Store the execution time for metrics
     execution_time = round(time.time() * 1000)
-    
+
     #
     # Train the model
     #
     forest.fit(x_train_std, y_train.values.ravel())
 
-    # store the execution time for metrics
+    # Execution time (Metric) at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
 
     importances = forest.feature_importances_
+
+    #
+    # Sort the feature importance in descending order (ONLY CHECK!)
+    #
+    sorted_indices = np.argsort(importances)[::-1]
+
+    for f in range(x_train.shape[1]):
+        print("%2d) %-*s %f" % (f + 1, 30,
+                                x_train.columns[sorted_indices[f]],
+                                importances[sorted_indices[f]]))
 
     #
     # Prediction
@@ -79,45 +92,16 @@ if __name__ == "__main__":
     print(report)
 
     #
-    # Metrics
+    # Other metrics
     #
     precision, recall, f1_score, support_val = precision_recall_fscore_support(y_test, y_pred_test)
     accuracy = accuracy_score(y_test, y_pred_test)
 
-    #
-    # Sort the feature importance in descending order
-    #
-    sorted_indices = np.argsort(importances)[::-1]
-
-    # Open of output file
-    file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'iris.txt'))
-    irisFile = open(file_name, "w")
-
-    #
-    # Saving informations
-    #
-    irisFile.write("Feature Importance:\n")
-    for f in range(x_train.shape[1]):
-        irisFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                     importances[sorted_indices[f]]))
-
-    irisFile.write("\nEpsilon-Features:\n")
-    truePositive = x_train.columns.shape[0] // 5
-    if truePositive <= 0:
-        truePositive = 1
-    for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        irisFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                     importances[sorted_indices[f]]))
-
-    # Close of file
-    irisFile.close()
+    singleton = list(set(y_pred_test))
 
     # Log of params
-    for f in range(x_train.shape[1]):
-        print("%2d) %-*s %f" % (f + 1, 30,
-                                x_train.columns[sorted_indices[f]],
-                                importances[sorted_indices[f]]))
-        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
+    for x in range(len(singleton)):
+        log_param(str(singleton[x]), "Class Type")
 
     # Log of metrics
     for x in range(len(precision)):
@@ -126,14 +110,7 @@ if __name__ == "__main__":
     log_metric("accuracy", accuracy)
     log_metric("execution_time", execution_time)
 
-    # create a plot for see the data of features importance
-    plt.title('Feature Importance')
-    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
-    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
-    plt.tight_layout()
-    plt.show()
-
-    # create a plot for see the data of confusion matrix
+    # Create a plot for see the data of confusion matrix
     plt.figure(figsize=(8, 6))
     plt.imshow(confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title('Confusion Matrix')
@@ -151,6 +128,6 @@ if __name__ == "__main__":
         plt.text(j, i, format(confusion_matrix[i, j], 'd'), horizontalalignment="center",
                  color="white" if confusion_matrix[i, j] > thresh else "black")
 
-    # Show plot
+    # Show plots
     plt.tight_layout()
     plt.show()
