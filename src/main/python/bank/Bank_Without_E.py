@@ -36,7 +36,7 @@ if __name__ == "__main__":
         label_encoder.fit(df[col])
         df[col] = label_encoder.transform(df[col])
 
-    x = df[['age', 'job', 'marital', 'education', 'default', 'balance', 'housing', 'loan', 'contact', 'day', 'month',
+    x = df[['age', 'job', 'marital', 'education', 'balance', 'housing', 'day', 'month',
             'duration', 'campaign', 'pdays', 'previous', 'poutcome']]
     y = df['CLASS']
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     #
     # Training / Test Dataframe
     #
-    cols = ['age', 'job', 'marital', 'education', 'default', 'balance', 'housing', 'loan', 'contact', 'day', 'month',
+    cols = ['age', 'job', 'marital', 'education', 'balance', 'housing', 'day', 'month',
             'duration', 'campaign', 'pdays', 'previous', 'poutcome']
     X_train_std = pd.DataFrame(X_train_std, columns=cols)
     X_test_std = pd.DataFrame(X_test_std, columns=cols)
@@ -78,6 +78,16 @@ if __name__ == "__main__":
     importances = forest.feature_importances_
 
     #
+    # Sort the feature importance in descending order (ONLY CHECK!)
+    #
+    sorted_indices = np.argsort(importances)[::-1]
+
+    for f in range(x_train.shape[1]):
+        print("%2d) %-*s %f" % (f + 1, 30,
+                                x_train.columns[sorted_indices[f]],
+                                importances[sorted_indices[f]]))
+
+    #
     # Prediction
     #
     y_pred_test = forest.predict(X_test_std)
@@ -95,40 +105,11 @@ if __name__ == "__main__":
     precision, recall, f1_score, support_val = precision_recall_fscore_support(y_test, y_pred_test)
     accuracy = accuracy_score(y_test, y_pred_test)
 
-    #
-    # Sort the feature importance in descending order
-    #
-    sorted_indices = np.argsort(importances)[::-1]
-
-    # Open of output file
-    file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'bank.txt'))
-    bankFile = open(file_name, "w")
-    bankFile.write("Feature Importance:\n")
-
-    #
-    # Saving informations
-    #
-    for f in range(x_train.shape[1]):
-        bankFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                      importances[sorted_indices[f]]))
-
-    bankFile.write("\nEpsilon-Features:\n")
-    truePositive = x_train.columns.shape[0] // 5
-    if truePositive <= 0:
-        truePositive = 1
-    for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        bankFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                      importances[sorted_indices[f]]))
-
-    # Close of file
-    bankFile.close()
+    singleton = list(set(y_pred_test))
 
     # Log of params
-    for f in range(x_train.shape[1]):
-        print("%2d) %-*s %f" % (f + 1, 30,
-                                x_train.columns[sorted_indices[f]],
-                                importances[sorted_indices[f]]))
-        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
+    for x in range(len(singleton)):
+        log_param(str(x), str(singleton[x]))
 
     # Log of metrics
     for x in range(len(precision)):
@@ -136,13 +117,6 @@ if __name__ == "__main__":
         log_metric("recall class " + str(x), recall[x])
     log_metric("accuracy", accuracy)
     log_metric("execution_time", execution_time)
-
-    # create a plot for see the data of features importance
-    plt.title('Feature Importance')
-    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center', data=x_train.values)
-    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
-    plt.tight_layout()
-    plt.show()
 
     # create a plot for see the data of confusion matrix
     plt.figure(figsize=(8, 6))
@@ -162,6 +136,6 @@ if __name__ == "__main__":
         plt.text(j, i, format(confusion_matrix[i, j], 'd'), horizontalalignment="center",
                  color="white" if confusion_matrix[i, j] > thresh else "black")
 
-    # Show plot
+    # Show plots
     plt.tight_layout()
     plt.show()
