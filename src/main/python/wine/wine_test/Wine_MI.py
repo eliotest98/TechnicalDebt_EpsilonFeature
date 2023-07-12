@@ -1,8 +1,9 @@
-import os
+import itertools
 import pandas as pd
 import dagshub
 from mlflow import log_param, log_metric
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, \
+    precision_recall_fscore_support
 import mlflow
 import logging
 import matplotlib.pyplot as plt
@@ -11,42 +12,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import time
-from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import mutual_info_classif, SelectKBest
+from sklearn.svm import SVC
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
-
-
-def performance(actual, pred):
-    accuracy = accuracy_score(actual, pred)
-    precision = precision_score(actual, pred, average='macro')
-    recall = recall_score(actual, pred, average='macro')
-    return accuracy, precision, recall
-
-
-def load_oracle(file_to_open):
-    # Open of output file
-    file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../resources/outputs', file_to_open))
-    file = open(file_name, "r")
-    start = False
-    # Load of Oracle Epsilon Features
-    epsilon_features_oracle = []
-    for riga in file:
-        riga = riga.strip()
-        if ("Epsilon-Features" in riga) | start:
-            if start:
-                epsilon_features_oracle.append(riga.split(":")[0])
-            start = True
-    return epsilon_features_oracle
-
-
-def sort_lists(list_to_sort, oracle_list):
-    elementi_comuni = [item for item in list_to_sort if item in oracle_list]
-
-    list_to_sort = elementi_comuni + [item for item in list_to_sort if item not in elementi_comuni]
-    oracle_list = elementi_comuni + [item for item in oracle_list if item not in elementi_comuni]
-    return list_to_sort, oracle_list
-
 
 if __name__ == "__main__":
 
@@ -62,11 +32,13 @@ if __name__ == "__main__":
     df.columns = ['alcohal', 'malic_acid', 'ash', 'ash_alcalinity', 'magnesium', 'total_phenols', 'flavanoids',
                   'nonflavanoids_phenols', 'proanthocyanins', 'color_intensity', 'hue', 'od_dilutedwines', 'proline',
                   'class']
+
     #
     # Create training and test split
     #
-    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=42)
-    
+    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3,
+                                                        random_state=42)
+
     #
     # Feature scaling
     #
@@ -74,6 +46,7 @@ if __name__ == "__main__":
     sc.fit(x_train)
     X_train_std = sc.transform(x_train)
     X_test_std = sc.transform(x_test)
+
     #
     # Training / Test Dataframe
     #
@@ -82,56 +55,79 @@ if __name__ == "__main__":
     X_train_std = pd.DataFrame(X_train_std, columns=cols)
     X_test_std = pd.DataFrame(X_test_std, columns=cols)
 
-    # Load of oracle epsilon features
-    epsilon_features_oracle = load_oracle("wine.txt")
-
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)
 
     #
     # Train the mode
     #
-    importances = mutual_info_classif(wine.data, wine.target)
+    selector = SelectKBest(mutual_info_classif, k=13)
+    selected_features = selector.fit_transform(X_train_std, y_train.values.ravel())
+    svc = SVC(kernel="linear", C=1)
+    svc.fit(selected_features, y_train.values.ravel())
 
     # execution time at the end of fit
     execution_time = (round(time.time() * 1000) - execution_time) / 1000
 
+    selected_indices = selector.get_support(indices=True)
+    selected_features = X_train_std.columns[selected_indices]
+    feature_scores = selector.scores_[selected_indices]
+    sorted_indices = np.argsort(feature_scores)[::-1]  # Ordine decrescente
+    sorted_features = selected_features[sorted_indices]
+    sorted_scores = feature_scores[sorted_indices]
+
+    for i, (feature, score) in enumerate(zip(sorted_features, sorted_scores), start=1):
+        print(f"{i}) {feature} {score}")
+
     #
-    # Sort the feature in descending order
+    # Prediction
     #
-    sorted_indices = np.argsort(importances)[::-1]
+    y_pred_test = svc.predict(X_test_std)
 
-    print("Feature Importance Detected:")
-    for f in range(x_train.shape[1]):
-        print("%2d) %-*s %f" % (f + 1, 30,
-                                x_train.columns[sorted_indices[f]],
-                                importances[sorted_indices[f]]))
-        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
+    print("Confusion Matrix:")
+    confusion_matrix = confusion_matrix(y_test, y_pred_test)
+    print(confusion_matrix)
+    report = classification_report(y_test, y_pred_test)
+    print("Metrics Report:")
+    print(report)
 
-    epsilon_features = []
-    truePositive = x_train.columns.shape[0] // 5
-    if truePositive <= 0:
-        truePositive = 1
-    print("Epsilon Features Detected:")
-    for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        print("%2d) %s" % (f + 1, x_train.columns[sorted_indices[f]]))
-        epsilon_features.append(x_train.columns[sorted_indices[f]])
+    #
+    # Other metrics
+    #
+    precision, recall, f1_score, support_val = precision_recall_fscore_support(y_test, y_pred_test)
+    accuracy = accuracy_score(y_test, y_pred_test)
 
-    # Sorting epsilon features list by oracle
-    epsilon_features, epsilon_features_oracle = sort_lists(epsilon_features, epsilon_features_oracle)
+    singleton = list(set(y_pred_test))
 
-    # Metrics calculation
-    tupla = performance(epsilon_features, epsilon_features_oracle)
+    # Log of params
+    for x in range(len(singleton)):
+        log_param(str(singleton[x]), "Class Type")
 
-    # Log a metric; metrics can be updated throughout the run
-    log_metric("accuracy", tupla[0])
-    log_metric("precision", tupla[1])
-    log_metric("recall", tupla[2])
+    # Log of metrics
+    for x in range(len(precision)):
+        log_metric("precision class " + str(x), precision[x])
+        log_metric("recall class " + str(x), recall[x])
+    log_metric("accuracy", accuracy)
     log_metric("execution_time", execution_time)
 
-    # create a plot for see the data of features
-    plt.title('Epsilon Features')
-    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
-    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
+    # Create a plot for see the data of confusion matrix
+    plt.figure(figsize=(8, 6))
+    plt.imshow(confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title('Confusion Matrix')
+    plt.colorbar()
+    classes = np.unique(y_test)
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes)
+    plt.yticks(tick_marks, classes)
+    plt.xlabel('Predicted Label')
+    plt.ylabel('True Label')
+
+    # Adding values on plot
+    thresh = confusion_matrix.max() / 2.
+    for i, j in itertools.product(range(confusion_matrix.shape[0]), range(confusion_matrix.shape[1])):
+        plt.text(j, i, format(confusion_matrix[i, j], 'd'), horizontalalignment="center",
+                 color="white" if confusion_matrix[i, j] > thresh else "black")
+
+    # Show plots
     plt.tight_layout()
     plt.show()
