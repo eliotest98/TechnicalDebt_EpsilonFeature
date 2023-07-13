@@ -26,15 +26,15 @@ if __name__ == "__main__":
     #
     # Load the bank dataset
     #
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'bank.csv'))
-    df = pd.read_csv(csv_path, sep=';')
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'balanced_bank.csv'))
+    df = pd.read_csv(csv_path, sep=',')
 
-    categorical = ['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome', 'CLASS']
+    ''' categorical = ['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome', 'CLASS']
 
     label_encoder = LabelEncoder()
     for col in categorical:
         label_encoder.fit(df[col])
-        df[col] = label_encoder.transform(df[col])
+        df[col] = label_encoder.transform(df[col]) '''
 
     x = df[['age', 'job', 'marital', 'education', 'default', 'balance', 'housing', 'loan', 'contact', 'day', 'month',
             'duration', 'campaign', 'pdays', 'previous', 'poutcome']]
