@@ -1,12 +1,7 @@
-import itertools
 import pandas as pd
 import dagshub
-from mlflow import log_param, log_metric
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, \
-    precision_recall_fscore_support
 import mlflow
 import logging
-import matplotlib.pyplot as plt
 from sklearn import datasets
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -14,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 import time
 from sklearn.feature_selection import mutual_info_classif, SelectKBest
 from sklearn.svm import SVC
+from utils import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
@@ -61,7 +57,7 @@ if __name__ == "__main__":
     #
     # Train the mode
     #
-    selector = SelectKBest(mutual_info_classif, k=13)
+    selector = SelectKBest(mutual_info_classif, k="all")
     selected_features = selector.fit_transform(X_train_std, y_train.values.ravel())
     svc = SVC(kernel="linear", C=1)
     svc.fit(selected_features, y_train.values.ravel())
@@ -72,10 +68,11 @@ if __name__ == "__main__":
     selected_indices = selector.get_support(indices=True)
     selected_features = X_train_std.columns[selected_indices]
     feature_scores = selector.scores_[selected_indices]
-    sorted_indices = np.argsort(feature_scores)[::-1]  # Ordine decrescente
+    sorted_indices = np.argsort(feature_scores)[::-1]
     sorted_features = selected_features[sorted_indices]
     sorted_scores = feature_scores[sorted_indices]
 
+    print("\nFeatures Score:")
     for i, (feature, score) in enumerate(zip(sorted_features, sorted_scores), start=1):
         print(f"{i}) {feature} {score}")
 
@@ -84,50 +81,8 @@ if __name__ == "__main__":
     #
     y_pred_test = svc.predict(X_test_std)
 
-    print("Confusion Matrix:")
-    confusion_matrix = confusion_matrix(y_test, y_pred_test)
-    print(confusion_matrix)
-    report = classification_report(y_test, y_pred_test)
-    print("Metrics Report:")
-    print(report)
+    # Confusion Matrix
+    utils.confusion_matrix(y_test, y_pred_test)
 
-    #
-    # Other metrics
-    #
-    precision, recall, f1_score, support_val = precision_recall_fscore_support(y_test, y_pred_test)
-    accuracy = accuracy_score(y_test, y_pred_test)
-
-    singleton = list(set(y_pred_test))
-
-    # Log of params
-    for x in range(len(singleton)):
-        log_param(str(singleton[x]), "Class Type")
-
-    # Log of metrics
-    for x in range(len(precision)):
-        log_metric("precision class " + str(x), precision[x])
-        log_metric("recall class " + str(x), recall[x])
-    log_metric("accuracy", accuracy)
-    log_metric("execution_time", execution_time)
-
-    # Create a plot for see the data of confusion matrix
-    plt.figure(figsize=(8, 6))
-    plt.imshow(confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Confusion Matrix')
-    plt.colorbar()
-    classes = np.unique(y_test)
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes)
-    plt.yticks(tick_marks, classes)
-    plt.xlabel('Predicted Label')
-    plt.ylabel('True Label')
-
-    # Adding values on plot
-    thresh = confusion_matrix.max() / 2.
-    for i, j in itertools.product(range(confusion_matrix.shape[0]), range(confusion_matrix.shape[1])):
-        plt.text(j, i, format(confusion_matrix[i, j], 'd'), horizontalalignment="center",
-                 color="white" if confusion_matrix[i, j] > thresh else "black")
-
-    # Show plots
-    plt.tight_layout()
-    plt.show()
+    # Metrics
+    utils.metrics(y_test, y_pred_test, execution_time)

@@ -1,5 +1,5 @@
 import itertools
-
+import os
 import numpy as np
 import sklearn
 from matplotlib import pyplot as plt
@@ -7,11 +7,11 @@ from mlflow import log_metric, log_param
 
 
 def confusion_matrix(y_test, y_pred_test):
-    print("Confusion Matrix:")
+    print("\nConfusion Matrix:")
     cm = sklearn.metrics.confusion_matrix(y_test, y_pred_test)
     print(cm)
     report = sklearn.metrics.classification_report(y_test, y_pred_test)
-    print("Metrics Report:")
+    print("\nMetrics Report:")
     print(report)
 
     # Create a plot for see the data of confusion matrix
@@ -58,6 +58,29 @@ def metrics(y_test, y_pred_test, execution_time):
     log_metric("execution_time", execution_time)
 
 
+def metrics_fi(y_test, y_pred_test, x_train, importances, sorted_indices, execution_time):
+    #
+    # Other metrics
+    #
+    precision, recall, f1_score, support_val = sklearn.metrics.precision_recall_fscore_support(y_test, y_pred_test)
+    accuracy = sklearn.metrics.accuracy_score(y_test, y_pred_test)
+
+    print("\nFeature Importance:")
+    # Log of params
+    for f in range(x_train.shape[1]):
+        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
+        print("%2d) %-*s %f" % (f + 1, 30,
+                                x_train.columns[sorted_indices[f]],
+                                importances[sorted_indices[f]]))
+
+    # Log of metrics
+    for x in range(len(precision)):
+        log_metric("precision class " + str(x), precision[x])
+        log_metric("recall class " + str(x), recall[x])
+    log_metric("accuracy", accuracy)
+    log_metric("execution_time", execution_time)
+
+
 def metrics_adult(y_test, y_pred_test, execution_time):
     #
     # Other metrics
@@ -77,3 +100,41 @@ def metrics_adult(y_test, y_pred_test, execution_time):
         log_metric("recall class " + str(x), recall[x])
     log_metric("accuracy", accuracy)
     log_metric("execution_time", execution_time)
+
+
+def epsilon_features(x_train, importances, sorted_indices, path):
+    # Open of output file
+    file_name = os.path.abspath(path)
+    file = open(file_name, "w")
+
+    #
+    # Saving informations
+    #
+    file.write("Feature Importance:\n")
+    for f in range(x_train.shape[1]):
+        file.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+                                 importances[sorted_indices[f]]))
+
+    file.write("\nEpsilon-Features:\n")
+    print("\nEpsilon-Features:")
+    true_positive = x_train.columns.shape[0] // 5
+    if true_positive <= 0:
+        true_positive = 1
+    i = 1
+    for f in range(x_train.shape[1] - true_positive, x_train.shape[1]):
+        file.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+                                 importances[sorted_indices[f]]))
+        print("%2d) %-*s %f" % (i, 30,
+                                x_train.columns[sorted_indices[f]],
+                                importances[sorted_indices[f]]))
+        i = i + 1
+
+        # Close of file
+    file.close()
+
+    # create a plot for see the data of features importance
+    plt.title('Feature Importance')
+    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
+    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
+    plt.tight_layout()
+    plt.show()
