@@ -1,18 +1,18 @@
 Feature Importance:
- fnlwgt: 0.169198
-age: 0.154903
- capital-gain: 0.120920
- relationship: 0.104949
- education: 0.087077
- hours-per-week: 0.085301
- occupation: 0.080288
- marital-status: 0.069123
- workclass: 0.042284
- capital-loss: 0.040071
- native-country: 0.017565
- race: 0.014505
- sex: 0.013815
+fnlwgt: 0.171389
+age: 0.156817
+capital-gain: 0.120495
+relationship: 0.102625
+education: 0.089181
+hours-per-week: 0.086452
+occupation: 0.075305
+marital-status: 0.072069
+workclass: 0.041198
+capital-loss: 0.040380
+native-country: 0.015677
+race: 0.014796
+sex: 0.013616
 
 Epsilon-Features:
- race: 0.014505
- sex: 0.013815
+race: 0.014796
+sex: 0.013616

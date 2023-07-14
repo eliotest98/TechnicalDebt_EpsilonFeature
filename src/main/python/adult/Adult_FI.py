@@ -27,19 +27,19 @@ if __name__ == "__main__":
     #
     # Load the adult dataset
     #
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'adult.csv'))
+    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'preprocessed_adult.csv'))
     df = pd.read_csv(csv_path, sep=',')
 
-    categorical = ['workclass', 'education', 'marital-status', 'occupation', 'relationship',
+    '''categorical = ['workclass', 'education', 'marital-status', 'occupation', 'relationship',
                    'race', 'sex', 'native-country']
     label_encoder = LabelEncoder()
     for col in categorical:
         label_encoder.fit(df[col])
-        df[col] = label_encoder.transform(df[col])
+        df[col] = label_encoder.transform(df[col])'''
 
     x = df[['workclass', 'education', 'marital-status', 'occupation', 'relationship',
-            'race', 'sex', 'native-country', 'age', ' fnlwgt', 'capital-gain', 'capital-loss', 'hours-per-week']]
-    y = df['income']
+            'race', 'sex', 'native-country', 'age', 'fnlwgt', 'capital-gain', 'capital-loss', 'hours-per-week']]
+    y = df['income'] 
 
     #
     # Create training and test split
