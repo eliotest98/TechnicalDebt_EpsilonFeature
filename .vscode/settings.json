@@ -1,5 +1,5 @@
 {
-    "python.analysis.extraPaths": [
-        "./src/main/python/utils"
-    ]
+  "python.analysis.extraPaths": [
+    "./src/main/python/utils"
+  ]
 }

@@ -1,5 +1,6 @@
 import itertools
 import os
+
 import numpy as np
 import sklearn
 from matplotlib import pyplot as plt
@@ -37,7 +38,8 @@ def confusion_matrix(y_test, y_pred_test):
     plt.show()
 
 
-def metrics(y_test, y_pred_test, execution_time):
+# Metrics for the three methods
+def metrics_mi_rfe_c(y_test, y_pred_test, execution_time):
     #
     # Other metrics
     #
@@ -58,6 +60,7 @@ def metrics(y_test, y_pred_test, execution_time):
     log_metric("execution_time", execution_time)
 
 
+# Metrics for Feature Importance
 def metrics_fi(y_test, y_pred_test, x_train, importances, sorted_indices, execution_time):
     #
     # Other metrics
@@ -81,6 +84,7 @@ def metrics_fi(y_test, y_pred_test, x_train, importances, sorted_indices, execut
     log_metric("execution_time", execution_time)
 
 
+# Metrics for Feature Importance for Adult
 def metrics_adult(y_test, y_pred_test, execution_time):
     #
     # Other metrics
@@ -102,6 +106,7 @@ def metrics_adult(y_test, y_pred_test, execution_time):
     log_metric("execution_time", execution_time)
 
 
+# Metrics for Epsilon-Feature
 def epsilon_features(x_train, importances, sorted_indices, path):
     # Open of output file
     file_name = os.path.abspath(path)
@@ -138,10 +143,3 @@ def epsilon_features(x_train, importances, sorted_indices, path):
     plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
     plt.tight_layout()
     plt.show()
-
-'''if __name__ == "__main__":
-    confusion_matrix()
-    metrics()
-    metrics_fi()
-    metrics_adult()
-    epsilon_features() '''

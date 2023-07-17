@@ -1,19 +1,15 @@
-import itertools
-import os
-import pandas as pd
-import dagshub
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, \
-    precision_recall_fscore_support
-from mlflow import log_param, log_metric
-import mlflow
 import logging
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+import os
 import time
+
+import dagshub
+import mlflow
+import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
 
 import utils
 

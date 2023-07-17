@@ -1,26 +1,21 @@
-import itertools
+import logging
+import time
+
+import dagshub
+import mlflow
+import numpy as np
 import pandas as pd
 from sklearn import datasets
-import dagshub
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, \
-    precision_recall_fscore_support
-from mlflow import log_param, log_metric
-import mlflow
-import logging
-import numpy as np
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import time
-from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
+
 import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-
 if __name__ == "__main__":
-
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
@@ -39,7 +34,8 @@ if __name__ == "__main__":
     #
     # Create training and test split
     #
-    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(df.iloc[:, :-1], df.iloc[:, -1:], test_size=0.3,
+                                                        random_state=42)
     #
     # Feature scaling
     #

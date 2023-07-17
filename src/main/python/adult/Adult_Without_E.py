@@ -1,33 +1,29 @@
-import itertools
-import os
-import pandas as pd
-import dagshub
-from mlflow import log_param, log_metric
-import mlflow
 import logging
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, \
-    precision_recall_fscore_support
-from sklearn.preprocessing import LabelEncoder
+import os
+import time
+
+import dagshub
+import mlflow
 import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import time
-from sklearn.ensemble import RandomForestClassifier
+
 import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
     #
     # Load the adult dataset
     #
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'preprocessed_adult.csv'))
+    csv_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'preprocessed_adult.csv'))
     df = pd.read_csv(csv_path, sep=',')
 
     x = df[['workclass', 'education', 'marital-status', 'occupation', 'relationship',
@@ -50,7 +46,8 @@ if __name__ == "__main__":
     #
     # Training / Test Dataframe
     #
-    cols = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'age', 'fnlwgt', 'capital-gain', 'capital-loss', 'hours-per-week']
+    cols = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'age', 'fnlwgt', 'capital-gain',
+            'capital-loss', 'hours-per-week']
     X_train_std = pd.DataFrame(X_train_std, columns=cols)
     X_test_std = pd.DataFrame(X_test_std, columns=cols)
 
@@ -70,20 +67,10 @@ if __name__ == "__main__":
     importances = forest.feature_importances_
 
     #
-    # Sort the feature importance in descending order (ONLY CHECK!)
-    #
-    sorted_indices = np.argsort(importances)[::-1]
-
-    for f in range(x_train.shape[1]):
-        print("%2d) %-*s %f" % (f + 1, 30,
-                                x_train.columns[sorted_indices[f]],
-                                importances[sorted_indices[f]]))
-
-    #
     # Prediction
     #
     y_pred_test = forest.predict(X_test_std)
-  #
+    #
     # Sort the feature importance in descending order
     #
     sorted_indices = np.argsort(importances)[::-1]
@@ -92,4 +79,4 @@ if __name__ == "__main__":
     utils.confusion_matrix(y_test, y_pred_test)
 
     # Metrics
-    utils.metrics_adult(y_test, y_pred_test, execution_time)
+    utils.metrics_fi(y_test, y_pred_test, x_train, importances, sorted_indices, execution_time)

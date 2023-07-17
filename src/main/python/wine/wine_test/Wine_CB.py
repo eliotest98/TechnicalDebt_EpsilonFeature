@@ -1,17 +1,18 @@
+import logging
+import time
+
+import dagshub
+import matplotlib.pyplot as plt
+import mlflow
 import numpy as np
 import pandas as pd
-import dagshub
+import seaborn as sns
+from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn import datasets
-import mlflow
-import logging
-import matplotlib.pyplot as plt
-import time
-import seaborn as sns
 from sklearn.svm import SVC
 
-from utils import utils
+from wine import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
@@ -47,6 +48,8 @@ if __name__ == "__main__":
         print("Features high correlated")
     for x in range(len(to_drop)):
         print("%2d) %s" % (x + 1, to_drop[x]))
+        if to_drop[x] == 'class':
+            to_drop.remove('class')
 
     # Drop features
     df.drop(to_drop, axis=1, inplace=True)
@@ -98,4 +101,4 @@ if __name__ == "__main__":
     utils.confusion_matrix(y_test, y_pred_test)
 
     # Metrics
-    utils.metrics(y_test, y_pred_test, execution_time)
+    utils.metrics_mi_rfe_c(y_test, y_pred_test, execution_time)

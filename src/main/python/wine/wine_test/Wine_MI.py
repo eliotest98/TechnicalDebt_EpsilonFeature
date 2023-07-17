@@ -1,15 +1,17 @@
-import pandas as pd
+import logging
+import time
+
 import dagshub
 import mlflow
-import logging
-from sklearn import datasets
 import numpy as np
+import pandas as pd
+from sklearn import datasets
+from sklearn.feature_selection import mutual_info_classif, SelectKBest
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import time
-from sklearn.feature_selection import mutual_info_classif, SelectKBest
 from sklearn.svm import SVC
-from utils import utils
+
+from wine import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
@@ -85,4 +87,4 @@ if __name__ == "__main__":
     utils.confusion_matrix(y_test, y_pred_test)
 
     # Metrics
-    utils.metrics(y_test, y_pred_test, execution_time)
+    utils.metrics_mi_rfe_c(y_test, y_pred_test, execution_time)

@@ -1,26 +1,22 @@
-import itertools
+import logging
 import os
+import time
+
+import dagshub
+import mlflow
+import numpy as np
 import pandas as pd
 from sklearn import datasets
-import dagshub
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, \
-    precision_recall_fscore_support
-from mlflow import log_param, log_metric
-import mlflow
-import logging
-import numpy as np
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import time
-from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
+
 import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
@@ -56,7 +52,7 @@ if __name__ == "__main__":
 
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)
-    
+
     #
     # Train the model
     #
@@ -72,7 +68,6 @@ if __name__ == "__main__":
     #
     y_pred_test = forest.predict(x_test_std)
 
-    
     #
     # Sort the feature importance in descending order
     #
@@ -87,4 +82,3 @@ if __name__ == "__main__":
     # Epsilon Features
     utils.epsilon_features(x_train, importances, sorted_indices,
                            os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'iris.txt'))
-

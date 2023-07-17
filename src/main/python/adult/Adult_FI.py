@@ -1,46 +1,34 @@
-import itertools
-import os
-import pandas as pd
-import dagshub
-from mlflow import log_param, log_metric
-import mlflow
 import logging
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, \
-    precision_recall_fscore_support
-from sklearn.preprocessing import LabelEncoder
+import os
+import time
+
+import dagshub
+import mlflow
 import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import time
-from sklearn.ensemble import RandomForestClassifier
+
 import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-
 if __name__ == "__main__":
-
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
 
     #
     # Load the adult dataset
     #
-    csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'preprocessed_adult.csv'))
+    csv_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'preprocessed_adult.csv'))
     df = pd.read_csv(csv_path, sep=',')
-
-    '''categorical = ['workclass', 'education', 'marital-status', 'occupation', 'relationship',
-                   'race', 'sex', 'native-country']
-    label_encoder = LabelEncoder()
-    for col in categorical:
-        label_encoder.fit(df[col])
-        df[col] = label_encoder.transform(df[col])'''
 
     x = df[['workclass', 'education', 'marital-status', 'occupation', 'relationship',
             'race', 'sex', 'native-country', 'age', 'fnlwgt', 'capital-gain', 'capital-loss', 'hours-per-week']]
-    y = df['income'] 
+    y = df['income']
 
     #
     # Create training and test split
@@ -63,7 +51,7 @@ if __name__ == "__main__":
     X_train_std = pd.DataFrame(X_train_std, columns=cols)
     X_test_std = pd.DataFrame(X_test_std, columns=cols)
 
-    forest = RandomForestClassifier(n_estimators=500, random_state=42) 
+    forest = RandomForestClassifier(n_estimators=500, random_state=42)
 
     # store the execution time for metrics
     execution_time = round(time.time() * 1000)
@@ -84,7 +72,7 @@ if __name__ == "__main__":
     #
     y_pred_test = forest.predict(X_test_std)
 
-       #
+    #
     # Sort the feature importance in descending order
     #
     sorted_indices = np.argsort(importances)[::-1]
