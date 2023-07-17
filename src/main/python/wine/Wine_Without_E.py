@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-import utils
+from util import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
+
+    mlflow.set_experiment("Wine")
 
     #
     # Load the wine dataset

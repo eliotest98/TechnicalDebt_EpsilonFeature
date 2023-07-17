@@ -13,7 +13,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from raisin import utils
+from util import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     mlflow.set_tracking_uri("https://dagshub.com/eliotest98/Technical_Debt_Epsilon_Features.mlflow")
     dagshub.init("Technical_Debt_Epsilon_Features", "eliotest98", mlflow=True)
+
+    mlflow.set_experiment("Raisin")
 
     #
     # Load the raisin dataset

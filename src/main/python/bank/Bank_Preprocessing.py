@@ -36,7 +36,7 @@ balanced_df = pd.concat([balanced_features, balanced_target], axis=1)
 
 # Saving the balanced dataset to a new CSV file
 balanced_csv_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'balanced_bank.csv'))
+    os.path.join(os.path.dirname(__file__), '../../resources/datasets', 'preprocessed_bank.csv'))
 balanced_df.to_csv(balanced_csv_path, index=False)
 
 pd.value_counts(balanced_df['CLASS']).plot.bar()
