@@ -9,7 +9,8 @@ import logging
 from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 import time
-from utils import utils
+
+import utils
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)

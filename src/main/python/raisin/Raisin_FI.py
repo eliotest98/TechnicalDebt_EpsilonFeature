@@ -15,6 +15,8 @@ from sklearn.preprocessing import StandardScaler
 import time
 from sklearn.ensemble import RandomForestClassifier
 
+import utils
+
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
@@ -81,86 +83,17 @@ if __name__ == "__main__":
     #
     y_pred_test = forest.predict(X_test_std)
 
-    print("Confusion Matrix:")
-    confusion_matrix = confusion_matrix(y_test, y_pred_test)
-    print(confusion_matrix)
-    report = classification_report(y_test, y_pred_test)
-    print("Metrics Report:")
-    print(report)
-
-    #
-    # Metrics
-    #
-    precision, recall, f1_score, support_val = precision_recall_fscore_support(y_test, y_pred_test)
-    accuracy = accuracy_score(y_test, y_pred_test)
-
     #
     # Sort the feature importance in descending order
     #
     sorted_indices = np.argsort(importances)[::-1]
 
-    # Open of output file
-    file_name = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'raisin.txt'))
-    raisinFile = open(file_name, "w")
+    # Confusion Matrix
+    utils.confusion_matrix(y_test, y_pred_test)
 
-    #
-    # Saving informations
-    #
-    raisinFile.write("Feature Importance:\n")
-    for f in range(x_train.shape[1]):
-        raisinFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                       importances[sorted_indices[f]]))
+    # Metrics
+    utils.metrics_fi(y_test, y_pred_test, x_train, importances, sorted_indices, execution_time)
 
-    raisinFile.write("\nEpsilon-Features:\n")
-    truePositive = x_train.columns.shape[0] // 5
-    if truePositive <= 0:
-        truePositive = 1
-    for f in range(x_train.shape[1] - truePositive, x_train.shape[1]):
-        raisinFile.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
-                                       importances[sorted_indices[f]]))
-
-    # Close of file
-    raisinFile.close()
-
-    # Log of params
-    for f in range(x_train.shape[1]):
-        print("%2d) %-*s %f" % (f + 1, 30,
-                                x_train.columns[sorted_indices[f]],
-                                importances[sorted_indices[f]]))
-        log_param(x_train.columns[sorted_indices[f]], importances[sorted_indices[f]])
-
-    # Log of metrics
-    for x in range(len(precision)):
-        log_metric("precision class " + str(x), precision[x])
-        log_metric("recall class " + str(x), recall[x])
-    log_metric("accuracy", accuracy)
-    log_metric("execution_time", execution_time)
-
-    # create a plot for see the data of features importance
-    plt.title('Feature Importance')
-    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center', data=x_train.values)
-    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
-    plt.tight_layout()
-    plt.show()
-
-    # create a plot for see the data of confusion matrix
-    plt.figure(figsize=(8, 6))
-    plt.imshow(confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Confusion Matrix')
-    plt.colorbar()
-    classes = np.unique(y_test)
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes)
-    plt.yticks(tick_marks, classes)
-    plt.xlabel('Predicted Label')
-    plt.ylabel('True Label')
-
-    # Adding values on plot
-    thresh = confusion_matrix.max() / 2.
-    for i, j in itertools.product(range(confusion_matrix.shape[0]), range(confusion_matrix.shape[1])):
-        plt.text(j, i, format(confusion_matrix[i, j], 'd'), horizontalalignment="center",
-                 color="white" if confusion_matrix[i, j] > thresh else "black")
-
-    # Show plot
-    plt.tight_layout()
-    plt.show()
+    # Epsilon Features
+    utils.epsilon_features(x_train, importances, sorted_indices,
+                           os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'raisin.txt'))

@@ -138,3 +138,10 @@ def epsilon_features(x_train, importances, sorted_indices, path):
     plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
     plt.tight_layout()
     plt.show()
+
+'''if __name__ == "__main__":
+    confusion_matrix()
+    metrics()
+    metrics_fi()
+    metrics_adult()
+    epsilon_features() '''

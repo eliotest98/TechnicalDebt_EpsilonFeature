@@ -1,0 +1,6 @@
+README.md
+setup.py
+gusml.egg-info/PKG-INFO
+gusml.egg-info/SOURCES.txt
+gusml.egg-info/dependency_links.txt
+gusml.egg-info/top_level.txt
