@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 import dagshub
@@ -45,11 +46,7 @@ if __name__ == "__main__":
     # Find features with correlation greater than 0.95
     to_drop = [column for column in upper.columns if any(upper[column] > threshold)]
 
-    # Print Features high correlated
-    if len(to_drop) != 0:
-        print("Features high correlated")
     for x in range(len(to_drop)):
-        print("%2d) %s" % (x + 1, to_drop[x]))
         if to_drop[x] == 'class':
             to_drop.remove('class')
 
@@ -104,3 +101,7 @@ if __name__ == "__main__":
 
     # Metrics
     utils.metrics_mi_rfe_c(y_test, y_pred_test, execution_time)
+
+    # Epsilon Features
+    utils.epsilon_features_method_cb('class', to_drop,
+                                   os.path.join(os.path.dirname(__file__), '../../../resources/outputs/cb', 'wine.txt'))

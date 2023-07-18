@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 import dagshub
@@ -86,3 +87,7 @@ if __name__ == "__main__":
 
     # Metrics
     utils.metrics_mi_rfe_c(y_test, y_pred_test, execution_time)
+
+    # Epsilon Features
+    utils.epsilon_features_methods(x_train, feature_scores, sorted_indices,
+                                   os.path.join(os.path.dirname(__file__), '../../../resources/outputs/mi', 'iris.txt'))

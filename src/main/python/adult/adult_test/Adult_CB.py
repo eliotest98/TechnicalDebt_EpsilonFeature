@@ -45,11 +45,7 @@ if __name__ == "__main__":
     # Find features with correlation greater than 0.95
     to_drop = [column for column in upper.columns if any(upper[column] > threshold)]
 
-    # Print Features high correlated
-    if len(to_drop) != 0:
-        print("Features high correlated")
     for x in range(len(to_drop)):
-        print("%2d) %s" % (x + 1, to_drop[x]))
         if to_drop[x] == 'income':
             to_drop.remove('income')
 
@@ -108,3 +104,7 @@ if __name__ == "__main__":
 
     # Metrics
     utils.metrics_adult(y_test, y_pred_test, execution_time)
+
+    # Epsilon Features
+    utils.epsilon_features_method_cb('income', to_drop,
+                                   os.path.join(os.path.dirname(__file__), '../../../resources/outputs/cb', 'adult.txt'))
