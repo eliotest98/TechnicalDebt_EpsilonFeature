@@ -88,4 +88,4 @@ if __name__ == "__main__":
 
     # Epsilon Features
     utils.epsilon_features(x_train, importances, sorted_indices,
-                           os.path.join(os.path.dirname(__file__), '../../resources/outputs', 'wine.txt'))
+                           os.path.join(os.path.dirname(__file__), '../../resources/oracle/outputs', 'wine.txt'))

@@ -143,3 +143,42 @@ def epsilon_features(x_train, importances, sorted_indices, path):
     plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
     plt.tight_layout()
     plt.show()
+
+
+# Metrics for epsilon features of methods
+def epsilon_features_methods(x_train, importances, sorted_indices, path):
+    # Open of output file
+    file_name = os.path.abspath(path)
+    file = open(file_name, "w")
+
+    #
+    # Saving informations
+    #
+    file.write("Feature Importance:\n")
+    for f in range(x_train.shape[1]):
+        file.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+                                 importances[sorted_indices[f]]))
+
+    file.write("\nEpsilon-Features:\n")
+    print("\nEpsilon-Features:")
+    true_positive = x_train.columns.shape[0] // 5
+    if true_positive <= 0:
+        true_positive = 1
+    i = 1
+    for f in range(x_train.shape[1] - true_positive, x_train.shape[1]):
+        file.write("%s: %f\n" % (x_train.columns[sorted_indices[f]],
+                                 importances[sorted_indices[f]]))
+        print("%2d) %-*s %f" % (i, 30,
+                                x_train.columns[sorted_indices[f]],
+                                importances[sorted_indices[f]]))
+        i = i + 1
+
+        # Close of file
+    file.close()
+
+    # create a plot for see the data of features importance
+    plt.title('Feature Importance')
+    plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
+    plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
+    plt.tight_layout()
+    plt.show()
