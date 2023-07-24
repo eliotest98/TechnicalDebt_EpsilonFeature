@@ -1,0 +1,22 @@
+Feature Importance:
+marital: 1.000000
+education: 1.000000
+housing: 1.000000
+loan: 1.000000
+contact: 1.000000
+duration: 1.000000
+campaign: 1.000000
+poutcome: 1.000000
+age: 0.000000
+day: 0.000000
+pdays: 0.000000
+job: 0.000000
+balance: 0.000000
+previous: 0.000000
+month: 0.000000
+default: 0.000000
+
+Epsilon-Features:
+previous: 0.000000
+month: 0.000000
+default: 0.000000

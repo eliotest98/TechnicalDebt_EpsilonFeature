@@ -1,0 +1,18 @@
+Feature Importance:
+marital-status: 1.000000
+relationship: 1.000000
+sex: 1.000000
+age: 1.000000
+capital-gain: 1.000000
+hours-per-week: 1.000000
+education: 0.000000
+capital-loss: 0.000000
+race: 0.000000
+workclass: 0.000000
+occupation: 0.000000
+native-country: 0.000000
+fnlwgt: 0.000000
+
+Epsilon-Features:
+native-country: 0.000000
+fnlwgt: 0.000000

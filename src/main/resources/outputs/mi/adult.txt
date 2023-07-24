@@ -1,0 +1,18 @@
+Feature Importance:
+relationship: 0.167288
+marital-status: 0.154961
+age: 0.102407
+capital-gain: 0.087878
+education: 0.079131
+occupation: 0.072761
+hours-per-week: 0.050300
+capital-loss: 0.046557
+sex: 0.037756
+fnlwgt: 0.034094
+workclass: 0.016397
+native-country: 0.009564
+race: 0.007261
+
+Epsilon-Features:
+native-country: 0.009564
+race: 0.007261

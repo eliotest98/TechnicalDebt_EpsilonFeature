@@ -1,0 +1,18 @@
+Feature Importance:
+alcohal: 1.000000
+ash: 1.000000
+flavanoids: 1.000000
+hue: 1.000000
+od_dilutedwines: 1.000000
+proline: 1.000000
+proanthocyanins: 0.000000
+ash_alcalinity: 0.000000
+color_intensity: 0.000000
+total_phenols: 0.000000
+nonflavanoids_phenols: 0.000000
+malic_acid: 0.000000
+magnesium: 0.000000
+
+Epsilon-Features:
+malic_acid: 0.000000
+magnesium: 0.000000

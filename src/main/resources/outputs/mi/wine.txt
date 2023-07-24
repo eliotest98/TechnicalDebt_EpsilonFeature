@@ -1,4 +1,18 @@
+Feature Importance:
+flavanoids: 0.702148
+hue: 0.583181
+proline: 0.559612
+color_intensity: 0.538305
+od_dilutedwines: 0.521620
+alcohal: 0.423555
+total_phenols: 0.397356
+proanthocyanins: 0.352856
+malic_acid: 0.293377
+ash_alcalinity: 0.252516
+magnesium: 0.218571
+ash: 0.133378
+nonflavanoids_phenols: 0.057220
 
 Epsilon-Features:
-ConvexArea
-Perimeter
+ash: 0.133378
+nonflavanoids_phenols: 0.057220
