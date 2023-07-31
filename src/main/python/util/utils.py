@@ -138,7 +138,7 @@ def epsilon_features(x_train, importances, sorted_indices, path):
     file.close()
 
     # create a plot for see the data of features importance
-    plt.title('Feature Importance')
+    plt.title('Feature Importance - ' + str(os.path.basename(path).split(".")[0]))
     plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
     plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
     plt.tight_layout()
@@ -177,7 +177,7 @@ def epsilon_features_methods(x_train, importances, sorted_indices, path):
     file.close()
 
     # create a plot for see the data of features importance
-    plt.title('Feature Importance')
+    plt.title('Feature Importance - ' + str(os.path.basename(path).split(".")[0]))
     plt.bar(range(x_train.shape[1]), importances[sorted_indices], align='center')
     plt.xticks(range(x_train.shape[1]), x_train.columns[sorted_indices], rotation=90)
     plt.tight_layout()
